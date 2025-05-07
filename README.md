@@ -53,28 +53,7 @@ TanyaJawab is built on a modern tech stack designed for performance, reliability
 
 ## 📊 System Architecture Diagram
 
-```
-+-------------------+    +----------------------------+    +------------------+
-|                   |    |                            |    |                  |
-|  Web Interface    |<-->|  Backend API Services      |<-->|  PostgreSQL DB   |
-|                   |    |                            |    |                  |
-+-------------------+    +----------------------------+    +------------------+
-                          |             ^
-                          v             |
-     +------------+    +------------------+    +-----------------+
-     |            |    |                  |    |                 |
-     | Redis Cache|<-->| RAG System       |<-->| Qdrant Vector DB|
-     |            |    |                  |    |                 |
-     +------------+    +------------------+    +-----------------+
-                          |             ^
-                          v             |
-                    +-------------------------+
-                    |                         |
-                    | External AI Services    |
-                    | (Gemini, LLM API)       |
-                    |                         |
-                    +-------------------------+
-```
+![image](Assets/Readme/ClassUMLDiagram.png)
 
 ## 🚀 Getting Started
 
