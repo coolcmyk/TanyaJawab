@@ -6,12 +6,16 @@ import { useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { api } from "../lib/api"
 import toast from "react-hot-toast"
+import { GitHub } from "react-feather"
 
 export default function Login({ setUser }: { setUser: (user: any) => void }) {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
+  
+  // Get the GitHub auth URL from environment variables
+  const githubAuthUrl = import.meta.env.VITE_GITHUB_AUTH_URL || "http://localhost:3000/auth/github";
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -25,7 +29,7 @@ export default function Login({ setUser }: { setUser: (user: any) => void }) {
       setLoading(true)
       const response = await api.post("/auth/login", { email, password })
       setUser(response.data.user)
-      navigate("/")
+      navigate("/dashboard")
       toast.success("Login berhasil")
     } catch (error) {
       console.error("Login error:", error)
@@ -110,6 +114,28 @@ export default function Login({ setUser }: { setUser: (user: any) => void }) {
             </button>
           </div>
         </form>
+        
+        {/* GitHub login button */}
+        <div className="mt-4">
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-300"></div>
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-2 bg-white text-gray-500">atau</span>
+            </div>
+          </div>
+          
+          <div className="mt-4">
+            <a
+              href={githubAuthUrl}
+              className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-900 transition-colors"
+            >
+              <GitHub size={20} />
+              Login dengan GitHub
+            </a>
+          </div>
+        </div>
 
         <div className="text-center mt-4">
           <p className="text-sm text-gray-600">

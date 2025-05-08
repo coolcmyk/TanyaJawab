@@ -9,3 +9,5 @@ Backend/node_modules
 Backend/build
 Backend/dist
 Backend/.env
+
+.env 

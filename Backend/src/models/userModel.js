@@ -1,17 +1,56 @@
-const mongoose = require('mongoose');
+const db = require('../config/databaseConfig');
 const bcrypt = require('bcrypt');
 
-const UserSchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  email: { type: String, required: true, unique: true },
-  password: { type: String, required: true },
-  createdAt: { type: Date, default: Date.now }
-});
+class User {
+  static async findByEmail(email) {
+    const { rows } = await db.query(
+      'SELECT * FROM users WHERE email = $1',
+      [email]
+    );
+    return rows[0];
+  }
 
-UserSchema.pre('save', async function(next) {
-  if (!this.isModified('password')) return next();
-  this.password = await bcrypt.hash(this.password, 10);
-  next();
-});
+  static async findById(id) {
+    const { rows } = await db.query(
+      'SELECT * FROM users WHERE id = $1',
+      [id]
+    );
+    return rows[0];
+  }
 
-module.exports = mongoose.model('User', UserSchema);
+  static async create(userData) {
+    const { name, email, password } = userData;
+    
+    // Hash the password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+    
+    const { rows } = await db.query(
+      'INSERT INTO users (id, name, email, password) VALUES (uuid_generate_v4(), $1, $2, $3) RETURNING id, name, email',
+      [name, email, hashedPassword]
+    );
+    
+    return rows[0];
+  }
+
+  static async createWithGithub(userData) {
+    const { name, email, github_id } = userData;
+    
+    const { rows } = await db.query(
+      'INSERT INTO users (id, name, email, github_id) VALUES (uuid_generate_v4(), $1, $2, $3) RETURNING id, name, email, github_id',
+      [name, email, github_id]
+    );
+    
+    return rows[0];
+  }
+
+  static async findByGithubId(githubId) {
+    const { rows } = await db.query(
+      'SELECT * FROM users WHERE github_id = $1',
+      [githubId]
+    );
+    return rows[0];
+  }
+}
+
+module.exports = User;
