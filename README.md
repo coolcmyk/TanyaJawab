@@ -4,7 +4,7 @@ Final Project Sistem Basis Data Kelompok 14
 
 # TanyaJawab
 
-![TanyaJawab Logo](https://via.placeholder.com/200x70?text=TanyaJawab)
+![TanyaJawab Logo](/Assets/Readme/logo.png)
 
 > An intelligent learning assistant powered by RAG (Retrieval-Augmented Generation) to help students better understand their course materials.
 
@@ -70,7 +70,7 @@ TanyaJawab is built on a modern tech stack designed for performance, reliability
 1. Clone this repository:
 
    ```bash
-   git clone https://github.com/yourusername/TanyaJawab.git
+   git clone https://github.com/coolcmyk/TanyaJawab.git
    cd TanyaJawab
    ```
 
