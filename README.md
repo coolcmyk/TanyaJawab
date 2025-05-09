@@ -53,7 +53,7 @@ TanyaJawab is built on a modern tech stack designed for performance, reliability
 
 ## 📊 System Architecture Diagram
 
-![image](Assets/Readme/ClassDiagramUML.png)
+![image](Assets/Readme/umlsbd.png)
 
 ## 🚀 Getting Started
 
