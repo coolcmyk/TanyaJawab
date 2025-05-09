@@ -51,7 +51,7 @@ export default function Layout({ user, setUser, children }: { user: any; setUser
           </div>
 
           <nav className="space-y-1">
-            <NavLink to="/" className={({ isActive }) => `sidebar-link ${isActive ? "active" : ""}`} end>
+            <NavLink to="/dashboard" className={({ isActive }) => `sidebar-link ${isActive ? "active" : ""}`} end>
               <Home size={18} />
               <span>Dashboard</span>
             </NavLink>

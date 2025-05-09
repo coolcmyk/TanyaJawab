@@ -104,7 +104,7 @@ export default function LandingPage() {
               <li><b>Deployment:</b> Ready for Vercel, Netlify, or your own server.</li>
             </ul>
             <div className="mt-6">
-              <Link to="/register" className="btn-primary mr-4" style={{ background: "#8B6F43", color: "#fff" }}>Start Now</Link>
+              <Link to="/login" className="btn-primary mr-4" style={{ background: "#8B6F43", color: "#fff" }}>Start Now</Link>
               <a href="https://github.com/coolcmyk/TanyaJawab" target="_blank" rel="noopener noreferrer" className="hover:underline" style={{ color: "#8B6F43" }}>View on GitHub</a>
             </div>
           </div>
