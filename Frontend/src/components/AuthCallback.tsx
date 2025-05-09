@@ -15,24 +15,22 @@ export default function AuthCallback({ setUser }: { setUser: (user: any) => void
       return;
     }
 
-    // Save the token and get user data
     localStorage.setItem('auth_token', token);
 
-    // Get user info
     const fetchUser = async () => {
       try {
         const response = await api.get('/auth/me');
         setUser(response.data);
-        navigate('/dashboard');
+        navigate('/dashboard', { replace: true });
       } catch (err) {
-        console.error('Error fetching user data:', err);
         setError('Failed to authenticate. Please try again.');
         localStorage.removeItem('auth_token');
+        navigate('/login', { replace: true });
       }
     };
 
     fetchUser();
-  }, [navigate, setUser]);
+  }, [setUser, navigate]);
 
   if (error) {
     return (

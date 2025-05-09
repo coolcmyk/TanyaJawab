@@ -21,7 +21,7 @@ app.use('/auth', require('./src/routes/authRoutes'));
 app.use('/documents', require('./src/routes/documentsRoutes'));
 app.use('/courses', require('./src/routes/coursesRoutes'));
 app.use('/assignments', require('./src/routes/assignmentsRoutes'));
-
+app.use('/dashboard', require('./src/routes/dashboardRoutes'));
 
 databaseConfig.getConnection()
 

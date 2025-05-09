@@ -20,35 +20,31 @@ export default function App() {
   const location = useLocation();
 
   useEffect(() => {
-    const publicPaths = ["/", "/login", "/register", "/oauth-callback"];
-  
-    if (publicPaths.includes(location.pathname)) {
-      setLoading(false); // Don’t fetch user, just show login/register
-      return;
-    }
-  
     const token = localStorage.getItem("auth_token");
     if (token) {
       axiosInstance.defaults.headers.common["Authorization"] = `Bearer ${token}`;
     }
-  
-    const fetchUser = async () => {
-      try {
-        const response = await api.get("/auth/me");
-        setUser(response.data);
-      } catch (error) {
-        console.warn("User not authenticated");
-        setUser(null);
-        localStorage.removeItem("auth_token");
-        // window.location.href = "/login"; // Remove this or it loops again
-      } finally {
-        setLoading(false);
-      }
-    };
-  
-    fetchUser();
-  }, [location.pathname]);
-  
+
+    // Only fetch user if token exists and user is not set
+    if (!user && token) {
+      const fetchUser = async () => {
+        try {
+          const response = await api.get("/auth/me");
+          setUser(response.data);
+        } catch (error) {
+          setUser(null);
+          localStorage.removeItem("auth_token");
+        } finally {
+          setLoading(false);
+        }
+      };
+      fetchUser();
+    } else {
+      setLoading(false);
+    }
+    // Only run on mount and when token changes
+    // eslint-disable-next-line
+  }, []);
 
   if (loading) {
     return (

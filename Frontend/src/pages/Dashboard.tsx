@@ -9,45 +9,25 @@ export default function Dashboard() {
   const [todayCourses, setTodayCourses] = useState<any[]>([])
   const [upcomingAssignments, setUpcomingAssignments] = useState<any[]>([])
   const [recentDocuments, setRecentDocuments] = useState<any[]>([])
-  const [loading, setLoading] = useState({
-    courses: true,
-    assignments: true,
-    documents: true,
-  })
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        // Fetch today's courses
-        const coursesResponse = await api.get("/courses/today")
-        setTodayCourses(coursesResponse.data)
-        setLoading((prev) => ({ ...prev, courses: false }))
-
-        // Fetch upcoming assignments
-        const assignmentsResponse = await api.get("/assignments?status=todo&limit=3")
-        setUpcomingAssignments(assignmentsResponse.data)
-        setLoading((prev) => ({ ...prev, assignments: false }))
-
-        // Fetch recent documents
-        const documentsResponse = await api.get("/documents")
-        setRecentDocuments(documentsResponse.data.slice(0, 3))
-        setLoading((prev) => ({ ...prev, documents: false }))
+        const response = await api.get("/dashboard")
+        setTodayCourses(response.data.todayCourses)
+        setUpcomingAssignments(response.data.upcomingAssignments)
+        setRecentDocuments(response.data.recentDocuments)
       } catch (error) {
         console.error("Error fetching dashboard data:", error)
-        setLoading({
-          courses: false,
-          assignments: false,
-          documents: false,
-        })
+      } finally {
+        setLoading(false)
       }
     }
-
     fetchDashboardData()
   }, [])
 
-  const formatTime = (time: string) => {
-    return time
-  }
+  const formatTime = (time: string) => time
 
   const getDayName = () => {
     const days = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"]
@@ -65,8 +45,7 @@ export default function Dashboard() {
             <h2 className="text-lg font-medium text-gray-800">Jadwal Hari Ini ({getDayName()})</h2>
             <Calendar size={20} className="text-indigo-500" />
           </div>
-
-          {loading.courses ? (
+          {loading ? (
             <div className="flex justify-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-indigo-500"></div>
             </div>
@@ -88,7 +67,6 @@ export default function Dashboard() {
               <p>Tidak ada jadwal kuliah hari ini</p>
             </div>
           )}
-
           <div className="mt-4">
             <Link to="/courses" className="text-sm text-indigo-600 hover:text-indigo-800">
               Lihat semua jadwal →
@@ -102,8 +80,7 @@ export default function Dashboard() {
             <h2 className="text-lg font-medium text-gray-800">Tugas Mendatang</h2>
             <CheckSquare size={20} className="text-indigo-500" />
           </div>
-
-          {loading.assignments ? (
+          {loading ? (
             <div className="flex justify-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-indigo-500"></div>
             </div>
@@ -112,7 +89,7 @@ export default function Dashboard() {
               {upcomingAssignments.map((assignment) => (
                 <div key={assignment.id} className="p-3 bg-gray-50 rounded-lg">
                   <h3 className="font-medium text-gray-800">{assignment.title}</h3>
-                  <p className="text-sm text-gray-500 mt-1">{assignment.course.name}</p>
+                  <p className="text-sm text-gray-500 mt-1">{assignment.course?.name}</p>
                   <p className="text-xs text-gray-500 mt-1">
                     Deadline: {new Date(assignment.due_date).toLocaleDateString("id-ID")}
                   </p>
@@ -125,7 +102,6 @@ export default function Dashboard() {
               <p>Tidak ada tugas mendatang</p>
             </div>
           )}
-
           <div className="mt-4">
             <Link to="/assignments" className="text-sm text-indigo-600 hover:text-indigo-800">
               Lihat semua tugas →
@@ -139,8 +115,7 @@ export default function Dashboard() {
             <h2 className="text-lg font-medium text-gray-800">Dokumen Terbaru</h2>
             <FileText size={20} className="text-indigo-500" />
           </div>
-
-          {loading.documents ? (
+          {loading ? (
             <div className="flex justify-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-indigo-500"></div>
             </div>
@@ -167,7 +142,6 @@ export default function Dashboard() {
               <p>Belum ada dokumen</p>
             </div>
           )}
-
           <div className="mt-4">
             <Link to="/documents" className="text-sm text-indigo-600 hover:text-indigo-800">
               Lihat semua dokumen →

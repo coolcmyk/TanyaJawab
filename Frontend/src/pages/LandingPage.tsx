@@ -2,8 +2,7 @@ import { Link } from "react-router-dom";
 import { GitHub } from "react-feather";
 
 export default function LandingPage() {
-  // Get the GitHub auth URL from environment variables
-  const githubAuthUrl = import.meta.env.VITE_GITHUB_AUTH_URL || "http://localhost:3000/auth/github"  
+  const githubAuthUrl = import.meta.env.VITE_GITHUB_AUTH_URL || "http://localhost:3000/auth/github";
   return (
     <div className="min-h-screen bg-gradient-to-b from-indigo-50 to-white">
       <div className="container mx-auto px-4 py-12">
@@ -30,10 +29,7 @@ export default function LandingPage() {
               TanyaJawab membantu mahasiswa memahami materi kuliah dengan teknologi AI canggih. Unggah dokumen, tanyakan pertanyaan, dan dapatkan jawaban yang kontekstual.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
-              <Link
-                to="/register"
-                className="btn-primary text-center"
-              >
+              <Link to="/register" className="btn-primary text-center">
                 Daftar Sekarang
               </Link>
               <a
@@ -45,13 +41,6 @@ export default function LandingPage() {
               </a>
             </div>
           </div>
-          <div className="md:w-1/2 flex justify-center">
-            <img 
-              src="/placeholder-logo.svg" 
-              alt="TanyaJawab Platform" 
-              className="max-w-md w-full"
-            />
-          </div>
         </div>
 
         {/* Features */}
@@ -59,23 +48,50 @@ export default function LandingPage() {
           <div className="p-6 bg-white rounded-lg shadow-md">
             <h3 className="text-xl font-semibold mb-3">📄 Document Intelligence</h3>
             <p className="text-gray-600">
-              Unggah catatan kuliah, tugas, dan silabus dalam format PDF.
+              Unggah catatan kuliah, tugas, dan silabus dalam format PDF. Sistem akan mengekstrak dan mengelola konten dokumen Anda secara otomatis.
             </p>
           </div>
           <div className="p-6 bg-white rounded-lg shadow-md">
             <h3 className="text-xl font-semibold mb-3">🔍 Smart Q&A</h3>
             <p className="text-gray-600">
-              Tanyakan pertanyaan tentang dokumen dan dapatkan jawaban kontekstual.
+              Tanyakan pertanyaan tentang dokumen dan dapatkan jawaban kontekstual berbasis AI yang memahami isi dokumen Anda.
             </p>
           </div>
           <div className="p-6 bg-white rounded-lg shadow-md">
             <h3 className="text-xl font-semibold mb-3">📅 Course Scheduling</h3>
             <p className="text-gray-600">
-              Kelola jadwal kelas mingguan dan track tugas dengan deadline.
+              Kelola jadwal kelas mingguan, track tugas dengan deadline, dan dapatkan pengingat otomatis.
             </p>
+          </div>
+        </div>
+
+        {/* Comprehensive Info Section */}
+        <div className="bg-white rounded-lg shadow-md p-8 my-20">
+          <h2 className="text-2xl font-bold text-indigo-700 mb-4">Tentang TanyaJawab</h2>
+          <p className="text-gray-700 mb-4">
+            TanyaJawab adalah platform pembelajaran berbasis web yang mengintegrasikan teknologi AI untuk membantu mahasiswa memahami materi kuliah secara lebih efektif. Dengan fitur unggulan seperti manajemen dokumen, tanya jawab cerdas, penjadwalan kuliah, dan pelacakan tugas, TanyaJawab menjadi asisten belajar digital yang lengkap.
+          </p>
+          <ul className="list-disc pl-6 text-gray-700 mb-4">
+            <li><b>Upload & Organize:</b> Simpan semua dokumen kuliah Anda di satu tempat, mudah dicari dan diakses kapan saja.</li>
+            <li><b>AI-powered Q&A:</b> Ajukan pertanyaan tentang materi kuliah, tugas, atau catatan, dan dapatkan jawaban yang relevan secara instan.</li>
+            <li><b>Personal Dashboard:</b> Pantau jadwal kuliah, tugas mendatang, dan dokumen terbaru dalam satu tampilan dashboard.</li>
+            <li><b>Secure & Private:</b> Data Anda aman, hanya Anda yang dapat mengakses dokumen dan riwayat tanya jawab Anda.</li>
+            <li><b>Integrasi GitHub:</b> Login mudah dan aman menggunakan akun GitHub Anda.</li>
+          </ul>
+          <h3 className="text-xl font-semibold text-indigo-700 mt-6 mb-2">Teknologi di Balik TanyaJawab</h3>
+          <ul className="list-disc pl-6 text-gray-700">
+            <li><b>Frontend:</b> React.js, Tailwind CSS, Three.js untuk visualisasi interaktif.</li>
+            <li><b>Backend:</b> Node.js/Express (atau FastAPI, lihat README), PostgreSQL, Qdrant, Redis.</li>
+            <li><b>AI Integration:</b> Gemini Vision API untuk ekstraksi dokumen, LLM API untuk jawaban cerdas.</li>
+            <li><b>Authentication:</b> GitHub OAuth dan sistem login lokal.</li>
+            <li><b>Deployment:</b> Siap untuk deployment di Vercel, Netlify, atau server sendiri.</li>
+          </ul>
+          <div className="mt-6">
+            <Link to="/register" className="btn-primary mr-4">Mulai Sekarang</Link>
+            <a href="https://github.com/coolcmyk/TanyaJawab" target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:underline">Lihat di GitHub</a>
           </div>
         </div>
       </div>
     </div>
   );
-}  
+}
