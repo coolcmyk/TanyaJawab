@@ -25,6 +25,11 @@ export default defineConfig({
         target: 'http://localhost:3000',
         changeOrigin: true,
         rewrite: path => path.replace(/^\/auth\/api/, '/auth')
+      },
+      '/dashboard': { // For dashboard API calls
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+        rewrite: path => path.replace(/^\/dashboard/, '/dashboard')
       }
     }
   }

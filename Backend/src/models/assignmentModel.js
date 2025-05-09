@@ -5,7 +5,7 @@ exports.getUpcomingAssignments = async (userId, limit = 3) => {
     `SELECT a.*, c.name as course_name
      FROM assignments a
      JOIN courses c ON a.course_id = c.id
-     WHERE a.user_id = $1 AND a.status = 'todo' AND a.due_date >= NOW()
+     WHERE c.user_id = $1 AND a.status = 'todo' AND a.due_date >= NOW()
      ORDER BY a.due_date ASC
      LIMIT $2`,
     [userId, limit]

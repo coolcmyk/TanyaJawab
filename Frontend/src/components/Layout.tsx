@@ -6,7 +6,7 @@ import { useState } from "react"
 import { api } from "../lib/api"
 import toast from "react-hot-toast"
 
-export default function Layout({ user, setUser }: { user: any; setUser: (user: any) => void }) {
+export default function Layout({ user, setUser, children }: { user: any; setUser: (user: any) => void; children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const navigate = useNavigate()
 
@@ -93,7 +93,7 @@ export default function Layout({ user, setUser }: { user: any; setUser: (user: a
 
         {/* Page content */}
         <main className="flex-1 overflow-y-auto p-6">
-          <Outlet />
+          {children} {/* <-- Use children here */}
         </main>
       </div>
     </div>

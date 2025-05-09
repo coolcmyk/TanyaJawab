@@ -13,6 +13,7 @@ import Register from "./pages/Register";
 import LandingPage from "./pages/LandingPage";
 import AuthCallback from "./components/AuthCallback";
 import { api, axiosInstance} from "./lib/api";
+import path from "path";
 
 export default function App() {
   const [user, setUser] = useState<any>(null);
@@ -25,15 +26,22 @@ export default function App() {
       axiosInstance.defaults.headers.common["Authorization"] = `Bearer ${token}`;
     }
 
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) setUser(JSON.parse(storedUser));
+
     // Only fetch user if token exists and user is not set
     if (!user && token) {
       const fetchUser = async () => {
         try {
           const response = await api.get("/auth/me");
-          setUser(response.data);
+          const userData = response.data;
+          setUser(userData);
+          localStorage.setItem("user", JSON.stringify(userData));
+          console.log("User loaded", userData);
         } catch (error) {
           setUser(null);
           localStorage.removeItem("auth_token");
+          console.error("Failed to fetch user", error);
         } finally {
           setLoading(false);
         }
@@ -54,8 +62,18 @@ export default function App() {
     );
   }
 
-  const requireAuth = (element: JSX.Element) =>
-    user ? element : <Navigate to="/login" state={{ from: location }} replace />;
+  const protectedRoutes = [
+    { path: "/dashboard", element: <Layout user={user} setUser={setUser}><Dashboard /></Layout> },
+    { path: "/documents", element: <Layout user={user} setUser={setUser}><Documents /></Layout> },
+    { path: "/documents/:id", element: <Layout user={user} setUser={setUser}><DocumentView /></Layout> },
+    { path: "/courses", element: <Layout user={user} setUser={setUser}><Courses /></Layout> },
+    { path: "/assignments", element: <Layout user={user} setUser={setUser}><Assignments /></Layout> },
+  ];
+
+  const requireAuth = (element: JSX.Element) => {
+    console.log("requireAuth", user);
+    return user ? element : <Navigate to="/login" state={{ from: location }} replace />;
+  };
 
   return (
     <Routes>
@@ -66,11 +84,11 @@ export default function App() {
       <Route path="/oauth-callback" element={<AuthCallback setUser={setUser} />} />
 
       {/* Protected Routes */}
-      <Route path="/dashboard" element={requireAuth(<Layout user={user} setUser={setUser}><Dashboard /></Layout>)} />
-      <Route path="/documents" element={requireAuth(<Layout user={user} setUser={setUser}><Documents /></Layout>)} />
-      <Route path="/documents/:id" element={requireAuth(<Layout user={user} setUser={setUser}><DocumentView /></Layout>)} />
-      <Route path="/courses" element={requireAuth(<Layout user={user} setUser={setUser}><Courses /></Layout>)} />
-      <Route path="/assignments" element={requireAuth(<Layout user={user} setUser={setUser}><Assignments /></Layout>)} />
+      {/* <Route path="/dashboard" element={requireAuth(<Dashboard />)} /> */}
+      {/* <Route path="/dashboard" element={requireAuth(<Layout user={user} setUser={setUser}><Dashboard /></Layout>)} /> */}
+      {protectedRoutes.map(({ path, element }) => (
+        <Route key={path} path={path} element={requireAuth(element)} />
+      ))}
     </Routes>
   );
 }

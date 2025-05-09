@@ -9,13 +9,13 @@ exports.getDashboard = async (req, res) => {
     // Today's courses
     const today = new Date();
     const dayOfWeek = today.getDay(); // 0 (Sunday) - 6 (Saturday)
-    const courses = await Course.getCoursesByDay(userId, dayOfWeek);
+    const courses = await Course.getCoursesByDay(userId, dayOfWeek).catch(e => { console.error("Course error", e); throw e; });
 
     // Upcoming assignments (limit 3, status todo)
-    const assignments = await Assignment.getUpcomingAssignments(userId, 3);
+    const assignments = await Assignment.getUpcomingAssignments(userId, 3).catch(e => { console.error("Assignment error", e); throw e; });
 
     // Recent documents (limit 3)
-    const documents = await Document.getRecentDocuments(userId, 3);
+    const documents = await Document.getRecentDocuments(userId, 3).catch(e => { console.error("Document error", e); throw e; });
 
     res.json({
       todayCourses: courses,
