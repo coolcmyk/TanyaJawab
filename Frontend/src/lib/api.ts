@@ -1,85 +1,33 @@
-import { mockApi } from "./mockApi"
+import axios from 'axios';
 
-// Use mock API for the preview version
-export const api = {
-  get: async (url: string) => {
-    // Handle mock API requests
-    if (url === "/auth/me") return { data: await mockApi.getMe() }
-    if (url === "/documents") return { data: await mockApi.getDocuments() }
-    if (url.match(/^\/documents\/[^/]+$/)) {
-      const id = url.split("/")[2]
-      return { data: await mockApi.getDocument(id) }
-    }
-    if (url === "/courses") return { data: await mockApi.getCourses() }
-    if (url === "/courses/today") return { data: await mockApi.getTodayCourses() }
-    if (url === "/assignments") return { data: await mockApi.getAssignments() }
-    if (url.match(/^\/assignments\?status=([^&]+)&limit=(\d+)$/)) {
-      const match = url.match(/^\/assignments\?status=([^&]+)&limit=(\d+)$/)
-      if (match) {
-        const status = match[1]
-        const limit = Number.parseInt(match[2])
-        return { data: await mockApi.getAssignments(status, limit) }
+// Create a single axios instance
+export const api = axios.create({
+  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000',
+});
+
+// Export the same instance as axiosInstance for compatibility
+export const axiosInstance = api;
+
+// Set up an interceptor to add the token to all requests
+api.interceptors.request.use(config => {
+  const token = localStorage.getItem('auth_token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+// Handle unauthorized responses
+api.interceptors.response.use(
+  response => response,
+  error => {
+    if (error.response && error.response.status === 401) {
+      localStorage.removeItem('auth_token');
+      // Redirect to login without causing loops
+      if (!window.location.pathname.startsWith('/login')) {
+        window.location.href = '/login';
       }
     }
-
-    throw new Error(`Unhandled mock GET request: ${url}`)
-  },
-
-  post: async (url: string, data?: any) => {
-    // Handle mock API requests
-    if (url === "/auth/login") return { data: await mockApi.login(data?.email, data?.password) }
-    if (url === "/auth/register") return { data: await mockApi.register(data?.name, data?.email, data?.password) }
-    if (url === "/auth/logout") return { data: await mockApi.logout() }
-    if (url === "/documents/upload") return { data: await mockApi.uploadDocument(data?.get?.("file")) }
-    if (url.match(/^\/documents\/[^/]+\/ask$/)) {
-      const id = url.split("/")[2]
-      return { data: await mockApi.askDocument(id, data?.question) }
-    }
-    if (url === "/courses") return { data: await mockApi.createCourse(data) }
-    if (url === "/assignments") return { data: await mockApi.createAssignment(data) }
-
-    throw new Error(`Unhandled mock POST request: ${url}`)
-  },
-
-  put: async (url: string, data: any) => {
-    // Handle mock API requests
-    if (url.match(/^\/courses\/[^/]+$/)) {
-      const id = url.split("/")[2]
-      return { data: await mockApi.updateCourse(id, data) }
-    }
-    if (url.match(/^\/assignments\/[^/]+$/)) {
-      const id = url.split("/")[2]
-      return { data: await mockApi.updateAssignment(id, data) }
-    }
-
-    throw new Error(`Unhandled mock PUT request: ${url}`)
-  },
-
-  patch: async (url: string, data: any) => {
-    // Handle mock API requests
-    if (url.match(/^\/assignments\/[^/]+\/status$/)) {
-      const id = url.split("/")[2]
-      return { data: await mockApi.updateAssignmentStatus(id, data.status) }
-    }
-
-    throw new Error(`Unhandled mock PATCH request: ${url}`)
-  },
-
-  delete: async (url: string) => {
-    // Handle mock API requests
-    if (url.match(/^\/documents\/[^/]+$/)) {
-      const id = url.split("/")[2]
-      return { data: await mockApi.deleteDocument(id) }
-    }
-    if (url.match(/^\/courses\/[^/]+$/)) {
-      const id = url.split("/")[2]
-      return { data: await mockApi.deleteCourse(id) }
-    }
-    if (url.match(/^\/assignments\/[^/]+$/)) {
-      const id = url.split("/")[2]
-      return { data: await mockApi.deleteAssignment(id) }
-    }
-
-    throw new Error(`Unhandled mock DELETE request: ${url}`)
-  },
-}
+    return Promise.reject(error);
+  }
+);

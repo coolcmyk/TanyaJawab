@@ -15,11 +15,16 @@ export default defineConfig({
   },
   server: {
     port: 3001,
+    historyApiFallback: true, // Add this line
     proxy: {
-      // This should be just '/auth', not '/api/auth'
-      '/auth': {
+      '/auth/github': { // More specific path to avoid proxy conflict with React Router
         target: 'http://localhost:3000',
         changeOrigin: true
+      },
+      '/auth/api': { // For API calls that need to be proxied
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+        rewrite: path => path.replace(/^\/auth\/api/, '/auth')
       }
     }
   }

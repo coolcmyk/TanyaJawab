@@ -11,6 +11,6 @@ router.get('/me', auth, authController.getMe);
 
 // GitHub OAuth routes
 router.get('/github', authController.githubAuth);
-router.get('/callback', authController.githubCallback);
+router.get('/github/callback', authController.githubCallback);
 
 module.exports = router;

@@ -200,7 +200,7 @@ exports.githubCallback = async (req, res) => {
             user = await User.createWithGithub({
               name: githubUser.name || githubUser.login,
               email: primaryEmail,
-              github_id: githubUser.id
+
             });
           }
           break; // Break the loop if successful
@@ -220,7 +220,7 @@ exports.githubCallback = async (req, res) => {
     const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '1d' });
     
     // Redirect to frontend with token
-    res.redirect(`${process.env.FRONTEND_URL}/auth/callback?token=${token}`);
+    res.redirect(`${process.env.FRONTEND_URL}/oauth-callback?token=${token}`);
   } catch (error) {
     console.error('GitHub OAuth error:', error.message);
     
@@ -232,9 +232,7 @@ exports.githubCallback = async (req, res) => {
           <body>
             <h1>Temporary Service Unavailable</h1>
             <p>We're having trouble connecting to our database. Please try again in a few minutes.</p>
-            <a href="${process.env.FRONTEND_URL}">Return to home page</a>
-          </body>
-        </html>
+            <a href="${process.env.FRONTEND_URL}">Return to home page</a> </body> </html>
       `);
     }
     
