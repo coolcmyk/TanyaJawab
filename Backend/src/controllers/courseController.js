@@ -24,13 +24,14 @@ exports.addCourse = async (req, res) => {
 
 exports.getCourses = async (req, res) => {
   try {
-    const userId = req.user.id; // Ambil user ID dari middleware auth
+    const userId = req.user.id;
     const result = await db.query(
-      `SELECT * FROM courses WHERE user_id = $1 ORDER BY day_of_week, start_time ASC`,
+      `SELECT id, name, day_of_week, start_time, end_time
+       FROM courses
+       WHERE user_id = $1
+       ORDER BY day_of_week, start_time ASC`,
       [userId]
     );
-
-    console.log("Courses fetched:", result.rows); // Debugging
     res.status(200).json(result.rows);
   } catch (error) {
     console.error("Error fetching courses:", error);

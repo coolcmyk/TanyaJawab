@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const assignmentController = require('../controllers/assignmentController');
-const auth = require('../middleware/auth');
+const auth = require('../middleware/authMiddleware');
 
 // Route untuk mendapatkan semua tugas
 router.get('/', auth, assignmentController.getAssignments);

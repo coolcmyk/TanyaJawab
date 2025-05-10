@@ -2,19 +2,26 @@ const db = require('../config/databaseConfig');
 
 exports.getAssignments = async (req, res) => {
   try {
-    const userId = req.user.id; // Ambil user ID dari middleware auth
+    const userId = req.user.id;
     const result = await db.query(
-      `SELECT a.*, c.name as course_name
+      `SELECT a.*, c.id as course_id, c.name as course_name
        FROM assignments a
        LEFT JOIN courses c ON a.course_id = c.id
-       WHERE a.user_id = $1
+       WHERE c.user_id = $1
        ORDER BY a.due_date ASC`,
       [userId]
     );
 
     const assignments = result.rows.map(row => ({
-      ...row,
-      course: { id: row.course_id, name: row.course_name },
+      id: row.id,
+      title: row.title,
+      description: row.description,
+      due_date: row.due_date,
+      status: row.status,
+      course: {
+        id: row.course_id,
+        name: row.course_name,
+      },
     }));
 
     res.status(200).json(assignments);

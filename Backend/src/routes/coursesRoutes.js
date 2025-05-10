@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const courseController = require('../controllers/courseController'); 
-const auth = require('../middleware/auth'); 
+const auth = require('../middleware/authMiddleware');
 
 console.log('auth:', auth); // Debugging
 console.log('courseController.addCourse:', courseController.addCourse); // Debugging
