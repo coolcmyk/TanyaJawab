@@ -41,3 +41,22 @@ exports.uploadDocument = async (req, res) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 };
+
+exports.deleteDocument = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+    const docCheck = await db.query(
+      `SELECT * FROM documents WHERE id = $1 AND user_id = $2`,
+      [id, userId]
+    );
+    if (docCheck.rows.length === 0) {
+      return res.status(404).json({ message: "Dokumen tidak ditemukan" });
+    }
+    await db.query(`DELETE FROM documents WHERE id = $1`, [id]);
+    res.status(200).json({ message: "Dokumen berhasil dihapus" });
+  } catch (error) {
+    console.error("Error deleting document:", error.message);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};

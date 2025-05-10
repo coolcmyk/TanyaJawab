@@ -68,11 +68,11 @@ export default function Assignments() {
     if (assignment) {
       setEditingAssignment(assignment);
       setFormData({
-        title: assignment.title,
-        description: assignment.description,
-        due_date: assignment.due_date,
-        course_id: assignment.course.id,
-        status: assignment.status,
+        title: assignment.title || "",
+        description: assignment.description || "",
+        due_date: assignment.due_date || "",
+        course_id: assignment.course?.id || "",
+        status: assignment.status || "todo",
       });
     } else {
       setEditingAssignment(null);
@@ -101,47 +101,47 @@ export default function Assignments() {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  try {
-    if (editingAssignment) {
-      await api.put(`/assignments/${editingAssignment.id}`, formData);
-      toast.success("Tugas berhasil diperbarui");
-    } else {
-      await api.post("/assignments", formData);
-      toast.success("Tugas berhasil ditambahkan");
+    e.preventDefault();
+    try {
+      if (editingAssignment) {
+        const response = await api.put(`/assignments/${editingAssignment.id}`, formData);
+        setAssignments(assignments.map((a) => (a.id === editingAssignment.id ? response.data : a)));
+        toast.success("Tugas berhasil diperbarui");
+      } else {
+        const response = await api.post("/assignments", formData);
+        setAssignments([...assignments, response.data]);
+        toast.success("Tugas berhasil ditambahkan");
+      }
+      closeModal();
+    } catch (error) {
+      console.error("Error saving assignment:", error);
+      toast.error("Gagal menyimpan tugas");
     }
-    closeModal();
-    fetchAssignments(); // Panggil ulang untuk sinkronisasi
-  } catch (error) {
-    console.error("Error saving assignment:", error);
-    toast.error("Gagal menyimpan tugas");
-  }
-};
-  
+  };
 
   const handleDeleteAssignment = async (id: string) => {
-  if (!confirm("Apakah Anda yakin ingin menghapus tugas ini?")) return;
+    if (!confirm("Apakah Anda yakin ingin menghapus tugas ini?")) return;
+  
+    try {
+      await api.delete(`/assignments/${id}`);
+      setAssignments(assignments.filter((a) => a.id !== id));
+      toast.success("Tugas berhasil dihapus");
+    } catch (error) {
+      console.error("Error deleting assignment:", error);
+      toast.error("Gagal menghapus tugas");
+    }
+  };
 
-  try {
-    await api.delete(`/assignments/${id}`);
-    setAssignments(assignments.filter((a) => a.id !== id)); // Hapus tugas dari state
-    toast.success("Tugas berhasil dihapus");
-  } catch (error) {
-    console.error("Error deleting assignment:", error);
-    toast.error("Gagal menghapus tugas");
-  }
-};
-
- const handleStatusChange = async (id: string, status: string) => {
-  try {
-    const response = await api.patch(`/assignments/${id}/status`, { status });
-    setAssignments(assignments.map((a) => (a.id === id ? response.data : a))); // Perbarui status di state
-    toast.success("Status tugas berhasil diperbarui");
-  } catch (error) {
-    console.error("Error updating assignment status:", error);
-    toast.error("Gagal memperbarui status tugas");
-  }
-};
+  const handleStatusChange = async (id: string, status: string) => {
+    try {
+      const response = await api.patch(`/assignments/${id}/status`, { status });
+      setAssignments(assignments.map((a) => (a.id === id ? response.data : a))); // Perbarui status di state
+      toast.success("Status tugas berhasil diperbarui");
+    } catch (error) {
+      console.error("Error updating assignment status:", error);
+      toast.error("Gagal memperbarui status tugas");
+    }
+  };
 
   const filteredAssignments = assignments.filter((assignment) => {
     if (filter === "all") return true;
@@ -163,7 +163,7 @@ export default function Assignments() {
           <option value="done">Selesai</option>
         </select>
         <button onClick={() => openModal()} className="bg-blue-500 text-white px-4 py-2 rounded">
-          <Plus size={16} /> Tambah Tugas
+          Tambah Tugas
         </button>
       </div>
       {loading ? (
@@ -173,7 +173,9 @@ export default function Assignments() {
           {filteredAssignments.map((assignment) => (
             <div key={assignment.id} className="p-4 border rounded shadow">
               <h2 className="text-lg font-semibold">{assignment.title}</h2>
-              <p className="text-sm text-gray-600">{assignment.course.name}</p>
+              <p className="text-sm text-gray-600">
+                {assignment.course?.name || <span className="italic text-gray-400">Mata kuliah tidak ditemukan</span>}
+              </p>
               <p className="text-sm text-gray-600">{assignment.description}</p>
               <p className="text-sm text-gray-600 flex items-center">
                 <Clock size={14} className="mr-1" /> {assignment.due_date}
@@ -207,72 +209,78 @@ export default function Assignments() {
       {isModalOpen && (
         <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center">
           <div className="bg-white p-6 rounded shadow-lg w-96">
-            <h2 className="text-xl font-bold mb-4">
-              {editingAssignment ? "Edit Tugas" : "Tambah Tugas"}
-            </h2>
-            <form onSubmit={handleSubmit}>
-              <div className="mb-4">
-                <label className="block text-sm font-medium mb-1">Judul</label>
-                <input
-                  type="text"
-                  name="title"
-                  value={formData.title}
-                  onChange={handleInputChange}
-                  className="w-full border rounded px-3 py-2"
-                  required
-                />
+            {courses.length === 0 ? (
+              <div>Loading mata kuliah...</div>
+            ) : (
+              <div>
+                <h2 className="text-xl font-bold mb-4">
+                  {editingAssignment ? "Edit Tugas" : "Tambah Tugas"}
+                </h2>
+                <form onSubmit={handleSubmit}>
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium mb-1">Judul</label>
+                    <input
+                      type="text"
+                      name="title"
+                      value={formData.title}
+                      onChange={handleInputChange}
+                      className="w-full border rounded px-3 py-2"
+                      required
+                    />
+                  </div>
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium mb-1">Deskripsi</label>
+                    <textarea
+                      name="description"
+                      value={formData.description}
+                      onChange={handleInputChange}
+                      className="w-full border rounded px-3 py-2"
+                      required
+                    />
+                  </div>
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium mb-1">Tanggal Tenggat</label>
+                    <input
+                      type="date"
+                      name="due_date"
+                      value={formData.due_date}
+                      onChange={handleInputChange}
+                      className="w-full border rounded px-3 py-2"
+                      required
+                    />
+                  </div>
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium mb-1">Mata Kuliah</label>
+                    <select
+                      name="course_id"
+                      value={formData.course_id}
+                      onChange={handleInputChange}
+                      className="w-full border rounded px-3 py-2"
+                      required
+                    >
+                      <option value="">Pilih Mata Kuliah</option>
+                      {courses.map((course) => (
+                        <option key={course.id} value={course.id}>
+                          {course.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="flex justify-end space-x-2">
+                    <button
+                      type="button"
+                      onClick={closeModal}
+                      className="bg-gray-500 text-white px-4 py-2 rounded"
+                    >
+                      Batal
+                    </button>
+                    <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded">
+                      Simpan
+                    </button>
+                  </div>
+                </form>
               </div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium mb-1">Deskripsi</label>
-                <textarea
-                  name="description"
-                  value={formData.description}
-                  onChange={handleInputChange}
-                  className="w-full border rounded px-3 py-2"
-                  required
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium mb-1">Tanggal Tenggat</label>
-                <input
-                  type="date"
-                  name="due_date"
-                  value={formData.due_date}
-                  onChange={handleInputChange}
-                  className="w-full border rounded px-3 py-2"
-                  required
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium mb-1">Mata Kuliah</label>
-                <select
-                  name="course_id"
-                  value={formData.course_id}
-                  onChange={handleInputChange}
-                  className="w-full border rounded px-3 py-2"
-                  required
-                >
-                  <option value="">Pilih Mata Kuliah</option>
-                  {courses.map((course) => (
-                    <option key={course.id} value={course.id}>
-                      {course.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="flex justify-end space-x-2">
-                <button
-                  type="button"
-                  onClick={closeModal}
-                  className="bg-gray-500 text-white px-4 py-2 rounded"
-                >
-                  Batal
-                </button>
-                <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded">
-                  Simpan
-                </button>
-              </div>
-            </form>
+            )}
           </div>
         </div>
       )}

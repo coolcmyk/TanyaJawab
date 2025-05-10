@@ -34,18 +34,22 @@ exports.getAssignments = async (req, res) => {
 exports.addAssignment = async (req, res) => {
   try {
     const { title, description, due_date, course_id, status } = req.body;
-    const userId = req.user.id;
-
     if (!title || !due_date || !course_id) {
       return res.status(400).json({ message: "Semua field harus diisi" });
     }
-
-    const result = await db.query(
-      `INSERT INTO assignments (user_id, title, description, due_date, course_id, status)
-       VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
-      [userId, title, description, due_date, course_id, status || "todo"]
+    // Check course ownership
+    const courseCheck = await db.query(
+      `SELECT * FROM courses WHERE id = $1 AND user_id = $2`,
+      [course_id, req.user.id]
     );
-
+    if (courseCheck.rows.length === 0) {
+      return res.status(403).json({ message: "Anda tidak memiliki akses ke mata kuliah ini" });
+    }
+    const result = await db.query(
+      `INSERT INTO assignments (title, description, due_date, course_id, status)
+       VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+      [title, description, due_date, course_id, status || "todo"]
+    );
     res.status(201).json(result.rows[0]);
   } catch (error) {
     console.error("Error adding assignment:", error);
@@ -57,19 +61,22 @@ exports.updateAssignment = async (req, res) => {
   try {
     const { id } = req.params;
     const { title, description, due_date, course_id, status } = req.body;
-    const userId = req.user.id;
-
+    // Check assignment ownership via course
+    const assignmentCheck = await db.query(
+      `SELECT a.* FROM assignments a
+       JOIN courses c ON a.course_id = c.id
+       WHERE a.id = $1 AND c.user_id = $2`,
+      [id, req.user.id]
+    );
+    if (assignmentCheck.rows.length === 0) {
+      return res.status(404).json({ message: "Tugas tidak ditemukan" });
+    }
     const result = await db.query(
       `UPDATE assignments
        SET title = $1, description = $2, due_date = $3, course_id = $4, status = $5
-       WHERE id = $6 AND user_id = $7 RETURNING *`,
-      [title, description, due_date, course_id, status, id, userId]
+       WHERE id = $6 RETURNING *`,
+      [title, description, due_date, course_id, status, id]
     );
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ message: "Tugas tidak ditemukan" });
-    }
-
     res.status(200).json(result.rows[0]);
   } catch (error) {
     console.error("Error updating assignment:", error);
@@ -80,17 +87,17 @@ exports.updateAssignment = async (req, res) => {
 exports.deleteAssignment = async (req, res) => {
   try {
     const { id } = req.params;
-    const userId = req.user.id;
-
-    const result = await db.query(
-      `DELETE FROM assignments WHERE id = $1 AND user_id = $2 RETURNING *`,
-      [id, userId]
+    // Check assignment ownership via course
+    const assignmentCheck = await db.query(
+      `SELECT a.* FROM assignments a
+       JOIN courses c ON a.course_id = c.id
+       WHERE a.id = $1 AND c.user_id = $2`,
+      [id, req.user.id]
     );
-
-    if (result.rows.length === 0) {
+    if (assignmentCheck.rows.length === 0) {
       return res.status(404).json({ message: "Tugas tidak ditemukan" });
     }
-
+    await db.query(`DELETE FROM assignments WHERE id = $1`, [id]);
     res.status(200).json({ message: "Tugas berhasil dihapus" });
   } catch (error) {
     console.error("Error deleting assignment:", error);
@@ -102,19 +109,20 @@ exports.updateAssignmentStatus = async (req, res) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
-    const userId = req.user.id;
-
-    const result = await db.query(
-      `UPDATE assignments
-       SET status = $1
-       WHERE id = $2 AND user_id = $3 RETURNING *`,
-      [status, id, userId]
+    // Check assignment ownership via course
+    const assignmentCheck = await db.query(
+      `SELECT a.* FROM assignments a
+       JOIN courses c ON a.course_id = c.id
+       WHERE a.id = $1 AND c.user_id = $2`,
+      [id, req.user.id]
     );
-
-    if (result.rows.length === 0) {
+    if (assignmentCheck.rows.length === 0) {
       return res.status(404).json({ message: "Tugas tidak ditemukan" });
     }
-
+    const result = await db.query(
+      `UPDATE assignments SET status = $1 WHERE id = $2 RETURNING *`,
+      [status, id]
+    );
     res.status(200).json(result.rows[0]);
   } catch (error) {
     console.error("Error updating assignment status:", error);

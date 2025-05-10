@@ -26,6 +26,7 @@ exports.login = async (req, res) => {
         id: user.id,
         name: user.name,
         email: user.email,
+        avatar_url: user.avatar_url || null, // Add this line
       },
     });
   } catch (error) {
@@ -56,7 +57,8 @@ exports.register = async (req, res) => {
       user: {
         id: user.id,
         name: user.name,
-        email: user.email
+        email: user.email,
+        avatar_url: user.avatar_url || null, // Add this line
       }
     });
   } catch (error) {
@@ -75,7 +77,12 @@ exports.getMe = async (req, res) => {
     // Don't send the password
     delete user.password;
     
-    res.status(200).json(user);
+    res.status(200).json({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      avatar_url: user.avatar_url || null, // Add this line
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -111,8 +118,6 @@ exports.githubAuth = (req, res) => {
     res.status(500).send("Internal server error during GitHub authentication");
   }
 };
-
-
 
 exports.githubCallback = async (req, res) => {
   const code = req.query.code;
@@ -219,8 +224,14 @@ exports.githubCallback = async (req, res) => {
     
     // Generate JWT
     const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '1d' });
+
+    // Store avatar_url in DB if not already present
+    if (!user.avatar_url && githubUser.avatar_url) {
+      await db.query('UPDATE users SET avatar_url = $1 WHERE id = $2', [githubUser.avatar_url, user.id]);
+      user.avatar_url = githubUser.avatar_url;
+    }
     
-    // Redirect to frontend with token
+    // Redirect to frontend with token and avatar_url as query params (optional)
     res.redirect(`${process.env.FRONTEND_URL}/oauth-callback?token=${token}`);
   } catch (error) {
     console.error('GitHub OAuth error:', error.message);

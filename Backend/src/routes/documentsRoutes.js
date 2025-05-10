@@ -12,4 +12,7 @@ router.get('/', auth, documentController.getDocuments);
 // Endpoint untuk menambahkan dokumen baru
 router.post('/upload', auth, upload.single('file_url'), documentController.uploadDocument);
 
+router.delete('/:id', auth, documentController.deleteDocument);
+
+
 module.exports = router;

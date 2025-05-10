@@ -14,7 +14,7 @@ export default function Layout({ user, setUser, children }: { user: any; setUser
     try {
       await api.post("/auth/logout")
       setUser(null)
-      navigate("/login")
+      navigate("/")
     } catch (error) {
       console.error("Error logging out:", error)
       toast.error("Gagal keluar dari sistem")
@@ -45,7 +45,19 @@ export default function Layout({ user, setUser, children }: { user: any; setUser
         </div>
 
         <div className="p-4">
-          <div className="mb-6 p-4 bg-indigo-50 rounded-lg">
+          <div className="mb-6 p-4 bg-indigo-50 rounded-lg flex flex-col items-center">
+            {/* Profile photo */}
+            {user.avatar_url ? (
+              <img
+                src={user.avatar_url}
+                alt="Profile"
+                className="w-16 h-16 rounded-full mb-2 border-2 border-indigo-300 object-cover"
+              />
+            ) : (
+              <div className="w-16 h-16 rounded-full mb-2 bg-gray-300 flex items-center justify-center text-2xl text-white">
+                {user.name?.[0] || "?"}
+              </div>
+            )}
             <p className="font-medium text-gray-800">{user.name}</p>
             <p className="text-sm text-gray-500">{user.email}</p>
           </div>
