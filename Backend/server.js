@@ -25,6 +25,29 @@ app.use('/dashboard', require('./src/routes/dashboardRoutes'));
 
 databaseConfig.getConnection()
 
+
+app.use(express.json());
+
+app.use((err, req, res, next) => {
+  if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
+    console.error('Invalid JSON:', err.message);
+    return res.status(400).json({ message: 'Invalid JSON format' });
+  }
+  next();
+});
+
+
+exports.getDocuments = async (req, res) => {
+  try {
+    console.log('Request body:', req.body); // Log body request
+    const documents = await Document.findAll();
+    res.status(200).json(documents);
+  } catch (error) {
+    console.error('Error fetching documents:', error.message);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

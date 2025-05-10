@@ -12,7 +12,10 @@ export const axiosInstance = api;
 api.interceptors.request.use(config => {
   const token = localStorage.getItem('auth_token');
   if (token) {
+    console.log("Interceptor menambahkan token:", token); // Debugging
     config.headers.Authorization = `Bearer ${token}`;
+  } else {
+    console.warn("Token tidak ditemukan di interceptor"); // Debugging
   }
   return config;
 });

@@ -18,24 +18,23 @@ export default function Login({ setUser }: { setUser: (user: any) => void }) {
   const githubAuthUrl = import.meta.env.VITE_GITHUB_AUTH_URL || "http://localhost:3000/auth/github";
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-
-    if (!email || !password) {
-      toast.error("Email dan password harus diisi")
-      return
-    }
+    e.preventDefault();
 
     try {
-      setLoading(true)
-      const response = await api.post("/auth/login", { email, password })
-      setUser(response.data.user)
-      navigate("/dashboard")
-      toast.success("Login berhasil")
+      const response = await api.post("/auth/login", { email, password });
+      const token = response.data.token;
+      console.log("Token diterima:", token); // Debugging
+      if (token) {
+        localStorage.setItem("auth_token", token);
+        setUser(response.data.user);
+        toast.success("Login berhasil");
+        navigate("/dashboard");
+      } else {
+        throw new Error("Token tidak ditemukan");
+      }
     } catch (error) {
-      console.error("Login error:", error)
-      toast.error("Login gagal. Periksa email dan password Anda.")
-    } finally {
-      setLoading(false)
+      console.error("Login error:", error);
+      toast.error("Login gagal. Periksa email dan password Anda.");
     }
   }
 

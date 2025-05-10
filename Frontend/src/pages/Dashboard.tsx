@@ -12,20 +12,31 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const fetchDashboardData = async () => {
-      try {
-        const response = await api.get("/dashboard")
-        setTodayCourses(response.data.todayCourses)
-        setUpcomingAssignments(response.data.upcomingAssignments)
-        setRecentDocuments(response.data.recentDocuments)
-      } catch (error) {
-        console.error("Error fetching dashboard data:", error)
-      } finally {
-        setLoading(false)
+  const fetchDashboardData = async () => {
+    try {
+      const token = localStorage.getItem("authToken");
+      if (!token) {
+        throw new Error("Token tidak ditemukan");
       }
+
+      const response = await api.get("/dashboard", {
+        headers: { Authorization: `Bearer ${token}` }, // Tambahkan token ke header
+      });
+
+      setTodayCourses(response.data.todayCourses);
+      setUpcomingAssignments(response.data.upcomingAssignments);
+      setRecentDocuments(response.data.recentDocuments);
+    } catch (error) {
+      console.error("Error fetching dashboard data:", error);
+      // Redirect ke login jika token tidak valid
+      window.location.href = "/login";
+    } finally {
+      setLoading(false);
     }
-    fetchDashboardData()
-  }, [])
+  };
+
+  fetchDashboardData();
+}, []);
 
   const formatTime = (time: string) => time
 

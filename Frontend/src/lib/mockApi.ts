@@ -380,11 +380,12 @@ export const mockApi = {
   },
 
   getTodayCourses: async () => {
-    const today = new Date().getDay()
-    // Convert from JS day (0=Sunday) to our day (0=Sunday)
-    const adjustedDay = today === 0 ? 0 : today
-    return courses.filter((course) => course.day_of_week === adjustedDay)
-  },
+  const today = new Date().getDay();
+  const adjustedDay = today === 0 ? 0 : today;
+  const todayCourses = courses.filter((course) => course.day_of_week === adjustedDay);
+  console.log("Today Courses:", todayCourses);
+  return todayCourses;
+},
 
   createCourse: async (data: any) => {
     const newCourse = {
