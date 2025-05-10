@@ -30,21 +30,32 @@ export default function Courses() {
   })
 
   useEffect(() => {
-    fetchCourses()
-  }, [])
+    const fetchCourses = async () => {
+      try {
+        const token = localStorage.getItem("auth_token");
+        if (!token) {
+          console.error("Token tidak ditemukan di localStorage");
+          toast.error("Anda harus login terlebih dahulu");
+          window.location.href = "/login"; // Redirect ke login jika token tidak ada
+          return;
+        }
 
-  const fetchCourses = async () => {
-    try {
-      setLoading(true)
-      const response = await api.get("/courses")
-      setCourses(response.data)
-    } catch (error) {
-      console.error("Error fetching courses:", error)
-      toast.error("Gagal memuat jadwal kuliah")
-    } finally {
-      setLoading(false)
-    }
-  }
+        console.log("Token yang dikirim:", token); // Debugging
+        const response = await api.get("/courses", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        console.log("Data courses dari API:", response.data); // Debugging
+        setCourses(response.data); // Pastikan data diatur ke state
+        setLoading(false); // Hentikan loading spinner
+      } catch (error) {
+        console.error("Error fetching courses:", error);
+        toast.error("Gagal memuat jadwal kuliah");
+        setLoading(false); // Hentikan loading spinner meskipun terjadi error
+      }
+    };
+
+    fetchCourses();
+  }, []);
 
   const openModal = (course: Course | null = null) => {
     if (course) {
@@ -81,26 +92,26 @@ export default function Courses() {
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
     try {
       if (editingCourse) {
         // Update existing course
-        const response = await api.put(`/courses/${editingCourse.id}`, formData)
-        setCourses(courses.map((c) => (c.id === editingCourse.id ? response.data : c)))
-        toast.success("Jadwal kuliah berhasil diperbarui")
+        const response = await api.put(`/courses/${editingCourse.id}`, formData);
+        setCourses(courses.map((c) => (c.id === editingCourse.id ? response.data : c)));
+        toast.success("Jadwal kuliah berhasil diperbarui");
       } else {
         // Create new course
-        const response = await api.post("/courses", formData)
-        setCourses([...courses, response.data])
-        toast.success("Jadwal kuliah berhasil ditambahkan")
+        const response = await api.post("/courses", formData);
+        setCourses([...courses, response.data]);
+        toast.success("Jadwal kuliah berhasil ditambahkan");
       }
-      closeModal()
+      closeModal();
     } catch (error) {
-      console.error("Error saving course:", error)
-      toast.error("Gagal menyimpan jadwal kuliah")
+      console.error("Error saving course:", error);
+      toast.error("Gagal menyimpan jadwal kuliah");
     }
-  }
+  };
 
   const handleDeleteCourse = async (id: string) => {
     if (!confirm("Apakah Anda yakin ingin menghapus jadwal kuliah ini?")) return

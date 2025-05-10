@@ -1,29 +1,21 @@
 const Course = require('../models/courseModel');
 const Assignment = require('../models/assignmentModel');
-const Document = require('../models/documentModel');
 
 exports.getDashboard = async (req, res) => {
   try {
-    const userId = req.user.id;
+    const userId = req.user.id; // Data user dari middleware auth
+    const dayOfWeek = new Date().getDay(); // Hari ini (0 = Minggu, 1 = Senin, dst.)
 
-    // Today's courses
-    const today = new Date();
-    const dayOfWeek = today.getDay(); // 0 (Sunday) - 6 (Saturday)
-    const courses = await Course.getCoursesByDay(userId, dayOfWeek).catch(e => { console.error("Course error", e); throw e; });
+    const todayCourses = await Course.getCoursesByDay(userId, dayOfWeek);
+    const upcomingAssignments = await Assignment.getUpcomingAssignments(userId);
 
-    // Upcoming assignments (limit 3, status todo)
-    const assignments = await Assignment.getUpcomingAssignments(userId, 3).catch(e => { console.error("Assignment error", e); throw e; });
-
-    // Recent documents (limit 3)
-    const documents = await Document.getRecentDocuments(userId, 3).catch(e => { console.error("Document error", e); throw e; });
-
-    res.json({
-      todayCourses: courses,
-      upcomingAssignments: assignments,
-      recentDocuments: documents,
+    res.status(200).json({
+      todayCourses,
+      upcomingAssignments,
+      recentDocuments: [], // Tambahkan jika ada dokumen
     });
   } catch (error) {
-    console.error('Dashboard error:', error);
-    res.status(500).json({ message: 'Failed to fetch dashboard data' });
+    console.error("Error fetching dashboard data:", error);
+    res.status(500).json({ message: "Internal server error" });
   }
 };
