@@ -1,4 +1,8 @@
 const db = require('../config/databaseConfig');
+const pdfParse = require('pdf-parse');
+const fs = require('fs');
+const parsedPagesModel = require('../models/parsedPagesModel');
+const qdrant = require('../utils/qdrant');
 
 exports.getDocuments = async (req, res) => {
   try {
@@ -27,6 +31,19 @@ exports.uploadDocument = async (req, res) => {
       return res.status(400).json({ message: 'Missing required fields' });
     }
 
+    // Check for existing document by filename and user
+    const existingDocRes = await db.query(
+      'SELECT * FROM documents WHERE user_id = $1 AND original_filename = $2 LIMIT 1',
+      [userId, original_filename]
+    );
+    if (existingDocRes.rows.length > 0) {
+      const existingDoc = existingDocRes.rows[0];
+      const alreadyParsed = await parsedPagesModel.getParsedPagesByDocumentId(existingDoc.id);
+      if (alreadyParsed) {
+        return res.status(200).json({ ...existingDoc, message: 'Document already parsed.' });
+      }
+    }
+
     const query = `
       INSERT INTO documents (user_id, original_filename, file_url, upload_timestamp)
       VALUES ($1, $2, $3, NOW())
@@ -34,11 +51,41 @@ exports.uploadDocument = async (req, res) => {
     `;
     const values = [userId, original_filename, file_url];
     const { rows } = await db.query(query, values);
+    const document = rows[0];
 
-    res.status(201).json(rows[0]);
+    // Check if already parsed
+    const alreadyParsed = await parsedPagesModel.getParsedPagesByDocumentId(document.id);
+    if (alreadyParsed) {
+      return res.status(200).json({ ...document, message: 'Document already parsed.' });
+    }
+
+    // Parse PDF and store pages
+    const filePath = `./uploads/${req.file.filename}`;
+    const dataBuffer = fs.readFileSync(filePath);
+    const pdfData = await pdfParse(dataBuffer);
+    const pages = pdfData.text.split('\f');
+    const parsedPages = [];
+    for (let i = 0; i < pages.length; i++) {
+      const pageText = pages[i].trim();
+      if (pageText) {
+        // Convert to markdown (simple: wrap in code block)
+        const markdown = '````\n' + pageText + '\n````';
+        await parsedPagesModel.insertParsedPage({
+          document_id: document.id,
+          page_number: i + 1,
+          extracted_text: markdown,
+        });
+        parsedPages.push({ page_number: i + 1, extracted_text: markdown });
+      }
+    }
+
+    // Push to Qdrant
+    await qdrant.pushPagesToQdrant(document.id, parsedPages);
+
+    res.status(201).json(document);
   } catch (error) {
     console.error('Error uploading document:', error.message);
-    res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: 'Internal server error', error: error.message });
   }
 };
 
