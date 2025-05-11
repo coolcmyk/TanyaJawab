@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 // Create a single axios instance
 export const api = axios.create({
@@ -26,6 +27,7 @@ api.interceptors.response.use(
   error => {
     if (error.response && error.response.status === 401) {
       localStorage.removeItem('auth_token');
+      localStorage.removeItem('user');
       // Redirect to login without causing loops
       if (!window.location.pathname.startsWith('/login')) {
         window.location.href = '/login';
