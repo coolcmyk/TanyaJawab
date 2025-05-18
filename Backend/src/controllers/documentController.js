@@ -69,7 +69,8 @@ exports.uploadDocument = async (req, res) => {
       const pageText = pages[i].trim();
       if (pageText) {
         // Convert to markdown (simple: wrap in code block)
-        const markdown = '````\n' + pageText + '\n````';
+        // const markdown = '````\n' + pageText + '\n````';
+        markdown = pageText //simplified for RAG
         await parsedPagesModel.insertParsedPage({
           document_id: document.id,
           page_number: i + 1,

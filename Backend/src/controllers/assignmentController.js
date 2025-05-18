@@ -55,7 +55,7 @@ exports.addAssignment = async (req, res) => {
     console.error("Error adding assignment:", error);
     res.status(500).json({ message: "Internal server error" });
   }
-};
+    };
 
 exports.updateAssignment = async (req, res) => {
   try {

@@ -20,6 +20,7 @@ exports.upsertChunks = async (req, res) => {
 };
 
 exports.queryRAG = async (req, res) => {
+  
   const { question, documentId, topK = 3 } = req.body;
   const [embedding] = await getEmbeddings([question]);
   const results = await qdrant.search(COLLECTION_NAME, {

@@ -8,12 +8,10 @@ async function getEmbeddings(texts) {
     { contents: texts.map(text => ({ parts: [{ text }] })) },
     { params: { key: GEMINI_API_KEY } }
   );
-  // Adjust parsing as per Gemini API response
   return response.data.embeddings.map(e => e.values);
 }
 
 async function generateAnswer(context, question) {
-  // Replace with actual Gemini API endpoint and payload
   const response = await axios.post(
     'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent',
     {

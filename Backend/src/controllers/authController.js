@@ -58,7 +58,7 @@ exports.register = async (req, res) => {
         id: user.id,
         name: user.name,
         email: user.email,
-        avatar_url: user.avatar_url || null, // Add this line
+        avatar_url: user.avatar_url || null,
       }
     });
   } catch (error) {
@@ -74,14 +74,13 @@ exports.getMe = async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
     
-    // Don't send the password
     delete user.password;
     
     res.status(200).json({
       id: user.id,
       name: user.name,
       email: user.email,
-      avatar_url: user.avatar_url || null, // Add this line
+      avatar_url: user.avatar_url || null,
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -90,7 +89,6 @@ exports.getMe = async (req, res) => {
 
 exports.githubAuth = (req, res) => {
   try {
-    // Get the callback URL from environment variables
     const callbackUrl = process.env.GITHUB_CALLBACK_URL || process.env.GITHUB_REDIRECT_URI;
     
     if (!callbackUrl) {
@@ -103,12 +101,10 @@ exports.githubAuth = (req, res) => {
       return res.status(500).send("Server configuration error: GitHub client ID is not defined");
     }
     
-    // Properly encode the URL
     const encodedCallbackUrl = encodeURIComponent(callbackUrl);
     
     console.log("Using GitHub callback URL:", callbackUrl);
     
-    // Build the GitHub authorization URL
     const githubUrl = `https://github.com/login/oauth/authorize?client_id=${process.env.GITHUB_CLIENT_ID}&redirect_uri=${encodedCallbackUrl}&scope=user:email`;
     
     console.log("Redirecting to GitHub authorization URL:", githubUrl);
@@ -144,14 +140,12 @@ exports.githubCallback = async (req, res) => {
     
     const accessToken = tokenResponse.data.access_token;
     
-    // Get user info from GitHub
     const userResponse = await axios.get('https://api.github.com/user', {
       headers: {
         Authorization: `token ${accessToken}`
       }
     });
     
-    // Get user email from GitHub
     const emailResponse = await axios.get('https://api.github.com/user/emails', {
       headers: {
         Authorization: `token ${accessToken}`
@@ -166,7 +160,6 @@ exports.githubCallback = async (req, res) => {
     
     const githubUser = userResponse.data;
     
-    // Implement retry logic for database operations
     let retries = 3;
     let user = null;
     

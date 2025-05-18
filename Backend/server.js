@@ -41,7 +41,7 @@ app.use((err, req, res, next) => {
 
 exports.getDocuments = async (req, res) => {
   try {
-    console.log('Request body:', req.body); // Log body request
+    console.log('Request body:', req.body);
     const documents = await Document.findAll();
     res.status(200).json(documents);
   } catch (error) {
