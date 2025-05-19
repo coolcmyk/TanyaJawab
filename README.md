@@ -55,6 +55,10 @@ TanyaJawab is built on a modern tech stack designed for performance, reliability
 ## 📊 Entity Relationship Diagram
 ![image](Assets/Readme/erdproyek.png)
 
+
+## 📊 Flowchart
+![image](Assets/Readme/flowchartsbd.png)
+
 ## 🚀 Getting Started
 
 ### Prerequisites
