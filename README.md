@@ -57,7 +57,7 @@ TanyaJawab is built on a modern tech stack designed for performance, reliability
 
 
 ## 📊 Flowchart
-![image](Assets/Readme/flowchartsbd.png)
+![image](Assets/Readme/flowchartsbd.jpg)
 
 ## 🚀 Getting Started
 
