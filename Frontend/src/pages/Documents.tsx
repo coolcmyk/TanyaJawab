@@ -12,6 +12,8 @@ interface Document {
   id: string
   original_filename: string
   upload_timestamp: string
+  file_url: string | null
+  user_id: string
 }
 
 export default function Documents() {
@@ -28,6 +30,7 @@ export default function Documents() {
     try {
       setLoading(true)
       const response = await api.get("/documents")
+      console.log("Documents response:", response.data)
       setDocuments(response.data)
     } catch (error) {
       console.error("Error fetching documents:", error)
@@ -43,9 +46,14 @@ export default function Documents() {
 
     try {
       setUploading(true)
-
-      // For preview version, we'll just simulate the upload
-      const response = await api.post("/documents/upload", { get: () => files[0] })
+      const formData = new FormData()
+      formData.append("file", files[0])
+      formData.append('original_filename', files[0].name)
+      const response = await api.post("/documents/upload", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      })
 
       setDocuments([response.data, ...documents])
       toast.success("Dokumen berhasil diunggah")

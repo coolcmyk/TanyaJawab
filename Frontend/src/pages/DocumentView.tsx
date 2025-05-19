@@ -19,7 +19,7 @@ interface DocumentDetail {
   id: string
   original_filename: string
   upload_timestamp: string
-  parsed_pages: ParsedPage[]
+  pages: ParsedPage[]
 }
 
 interface ChatMessage {
@@ -127,7 +127,7 @@ export default function DocumentView() {
 
           <div className="p-6">
             <div className="space-y-6">
-              {document.parsed_pages.map((page) => (
+              {document.pages.map((page) => (
                 <div key={page.id} className="border-b pb-6 last:border-b-0 last:pb-0">
                   <h2 className="text-lg font-medium text-gray-800 mb-2">Halaman {page.page_number}</h2>
                   <div className="prose max-w-none">

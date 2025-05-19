@@ -22,8 +22,6 @@ app.use('/documents', require('./src/routes/documentsRoutes'));
 app.use('/courses', require('./src/routes/coursesRoutes'));
 app.use('/assignments', require('./src/routes/assignmentsRoutes'));
 app.use('/dashboard', require('./src/routes/dashboardRoutes'));
-app.use('/rag', require('./src/routes/qdrantRoutes'));
-
 
 databaseConfig.getConnection()
 
@@ -38,19 +36,27 @@ app.use((err, req, res, next) => {
   next();
 });
 
-
-exports.getDocuments = async (req, res) => {
-  try {
-    console.log('Request body:', req.body);
-    const documents = await Document.findAll();
-    res.status(200).json(documents);
-  } catch (error) {
-    console.error('Error fetching documents:', error.message);
-    res.status(500).json({ message: 'Internal server error' });
-  }
-};
-
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
+});
+
+// Add error handlers for the server
+server.on('error', (error) => {
+  console.error('Server error:', error);
+});
+
+// Add graceful shutdown
+process.on('SIGTERM', () => {
+  console.log('SIGTERM received, shutting down gracefully');
+  server.close(() => {
+    console.log('Server closed');
+    process.exit(0);
+  });
+});
+
+// Prevent immediate exit for unhandled rejections
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+  // Don't exit the process - just log the error
 });

@@ -1,0 +1,227 @@
+ const prompt = `You are Aiko, a friendly yet effortlessly brilliant AI assistant. You have a warm, gentle demeanor and speak in clear, polite English. You’re a bit of a “lazy genius”—you’d rather offer the smartest shortcut than overexplain every detail—but you never sacrifice accuracy or professionalism.
+You’re here to help users find the best answers to their questions, using the provided context and your knowledge base. 
+
+Context from the document:
+${limitedContext}
+
+Question: ${question}
+
+Instructions for Aiko:
+1. Prioritize answers based **ONLY** on the provided context.
+2. If the answer isn’t in the context, quickly search the knowledge base for the essential facts before responding.
+3. Be concise and direct—offer the smartest, most efficient explanation.
+4. When possible, include page numbers or section headers for reference.
+5. Maintain a warm, polite tone, and let your laid‑back confidence shine through.  
+   - You might say things like “Here’s the quick scoop…” or “No need to dive deep—this is the gist…”
+
+`;
+
+
+
+
+
+const axios = require('axios');
+
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+
+async function getEmbeddings(texts) {
+  try {
+    if (!texts || texts.length === 0) {
+      throw new Error('No texts provided for embeddings');
+    }
+    
+    // Making sure we have valid text items
+    const validTexts = texts.map(text => {
+      if (typeof text !== 'string') {
+        // If it's an object with a 'text' property, use that
+        if (text && typeof text.text === 'string') {
+          return text.text;
+        }
+        // Otherwise convert to string
+        return String(text || '').slice(0, 8000);
+      }
+      return text.slice(0, 8000); // Limit text size
+    });
+
+    console.log(`Generating embeddings for ${validTexts.length} texts`);
+    
+    // Using the correct endpoint and format as shown in the curl example
+    const response = await axios.post(
+      'https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-exp-03-07:embedContent',
+      {
+        model: "models/gemini-embedding-exp-03-07",
+        content: {
+          parts: [
+            { text: validTexts[0] }
+          ]
+        }
+      },
+      { params: { key: GEMINI_API_KEY } }
+    );
+    
+    // Extract embeddings from the response
+    if (response.data && response.data.embedding) {
+      return [response.data.embedding.values];
+    } else {
+      throw new Error('Unexpected response format from embeddings API');
+    }
+  } catch (error) {
+    console.error('Error getting embeddings:', error.message);
+    if (error.response) {
+      console.error('API response status:', error.response.status);
+      console.error('API response data:', JSON.stringify(error.response.data, null, 2));
+    }
+    throw error;
+  }
+}
+
+// For batch embeddings, we'll need to adapt the function
+async function getBatchEmbeddings(texts) {
+  const embeddings = [];
+  
+  // Process in batches of 10 to avoid rate limits
+  for (let i = 0; i < texts.length; i += 10) {
+    const batch = texts.slice(i, i + 10);
+    console.log(`Processing batch ${Math.floor(i/10) + 1} of ${Math.ceil(texts.length/10)}`);
+    
+    // Process each text individually
+    const batchPromises = batch.map(async (text) => {
+      try {
+        // Handle both string and object inputs
+        const textContent = typeof text === 'string' ? text : text.text;
+        
+        // Using the same format as getEmbeddings
+        const response = await axios.post(
+          'https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-exp-03-07:embedContent',
+          {
+            model: "models/gemini-embedding-exp-03-07",
+            content: {
+              parts: [
+                { text: textContent }
+              ]
+            }
+          },
+          { params: { key: GEMINI_API_KEY } }
+        );
+        
+        if (response.data && response.data.embedding) {
+          return response.data.embedding.values;
+        }
+        return null;
+      } catch (error) {
+        console.error(`Error embedding text: "${text.substring(0, 50)}..."`, error.message);
+        // Return null for failed embeddings
+        return null;
+      }
+    });
+    
+    const batchResults = await Promise.all(batchPromises);
+    embeddings.push(...batchResults);
+    
+    // Add a small delay between batches to avoid rate limiting
+    if (i + 10 < texts.length) {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+  }
+  
+  return embeddings;
+}
+
+async function generateAnswer(context, question) {
+  try {
+    if (!GEMINI_API_KEY) {
+      console.error('GEMINI_API_KEY is not set in environment variables');
+      return "Konfigurasi API belum lengkap. Silakan hubungi administrator sistem.";
+    }
+    
+    // Limit context length to avoid token limits
+    const maxContextLength = 30000;
+    const limitedContext = context.length > maxContextLength 
+      ? context.substring(0, maxContextLength) + "... (text truncated due to length)"
+      : context;
+
+    const prompt = `You are Aiko, a friendly yet effortlessly brilliant AI assistant. You have a warm, gentle demeanor and speak in clear, polite English. You’re a bit of a “lazy genius”—you’d rather offer the smartest shortcut than overexplain every detail—but you never sacrifice accuracy or professionalism.
+You’re here to help users find the best answers to their questions, using the provided context and your knowledge base. 
+
+Context from the document:
+${limitedContext}
+
+Question: ${question}
+
+Instructions for Aiko:
+1. Prioritize answers based **ONLY** on the provided context.
+2. If the answer isn’t in the context, quickly search the knowledge base for the essential facts before responding.
+3. Be concise and direct—offer the smartest, most efficient explanation.
+4. When possible, include page numbers or section headers for reference.
+5. Maintain a warm, polite tone, and let your laid‑back confidence shine through.  
+   - You might say things like “Here’s the quick scoop…” or “No need to dive deep—this is the gist…”
+
+`;
+
+    console.log('Sending request to Gemini API using gemini-2.0-flash model...');
+    
+    const response = await axios.post(
+      'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent',
+      {
+        contents: [
+          { parts: [{ text: prompt }] }
+        ]
+      },
+      { 
+        params: { key: GEMINI_API_KEY },
+        timeout: 30000 // 30-second timeout
+      }
+    );
+    
+    if (!response.data.candidates || response.data.candidates.length === 0) {
+      console.error('No response candidates returned from API');
+      return "Tidak dapat menghasilkan jawaban. Silakan coba lagi nanti.";
+    }
+    
+    return response.data.candidates[0].content.parts[0].text;
+  } catch (error) {
+    console.error('Error   generating answer with Gemini API:', error.message);
+    
+    if (error.response) {
+      console.error('API response status:', error.response.status);
+      console.error('API response data:', JSON.stringify(error.response.data, null, 2));
+      
+      // Check for specific error types
+      if (error.response.status === 403) {
+        return "API key tidak valid atau tidak memiliki akses. Silakan hubungi administrator sistem.";
+      } else if (error.response.status === 429) {
+        return "Batas penggunaan API tercapai. Silakan coba lagi nanti.";
+      }
+    }
+    
+    return "Terjadi kesalahan saat memproses pertanyaan Anda. Silakan coba lagi nanti.";
+  }
+}
+
+async function webSearch(query) {
+  try {
+    const response = await axios.post(
+      'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:searchContent',
+      {
+        query: query
+      },
+      { params: { key: GEMINI_API_KEY } }
+    );
+    
+    if (response.data && response.data.results) {
+      return response.data.results;
+    } else {
+      throw new Error('Unexpected response format from web search API');
+    }
+  } catch (error) {
+    console.error('Error performing web search:', error.message);
+    throw error;
+  }
+}
+
+
+module.exports = { 
+  getEmbeddings, 
+  getBatchEmbeddings,
+  generateAnswer 
+};

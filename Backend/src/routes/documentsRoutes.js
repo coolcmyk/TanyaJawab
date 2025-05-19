@@ -2,14 +2,17 @@ const express = require('express');
 const multer = require('multer');
 const router = express.Router();
 const documentController = require('../controllers/documentController');
-const authMiddleware = require('../middleware/authMiddleware');
+const auth = require('../middleware/authMiddleware');
 
 const upload = multer({ dest: 'uploads/' }); 
 
-router.get('/', authMiddleware, documentController.getDocuments);
+// Endpoint untuk mendapatkan semua dokumen (authenticated)
+router.get('/', auth, documentController.getDocuments);
 
-router.post('/upload', authMiddleware, upload.single('file_url'), documentController.uploadDocument);
+// Endpoint untuk menambahkan dokumen baru
+router.post('/upload', auth, upload.single('file_url'), documentController.uploadDocument);
 
-router.delete('/:id', authMiddleware, documentController.deleteDocument);
+router.delete('/:id', auth, documentController.deleteDocument);
+
 
 module.exports = router;
